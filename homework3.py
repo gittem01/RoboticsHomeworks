@@ -119,23 +119,22 @@ def calculateReverseAngles(pos):
 
     return ang1, ang2, ang3
 
-def calculateEndAngles(requiredFrame):
+def calculateEndAngles(requiredFrame, mult):
     r17 = requiredFrame
     r14 = matrices[5][:3, :3]
     for i in range(4, 2, -1):
         r14 = np.dot(r14, matrices[i][:3, :3])
-    
+
     r47 = np.dot(np.linalg.inv(r14), r17)
 
     r47[2, 2] = min(1.0, max(-1.0, r47[2, 2]))
-    a2 = acos(r47[2, 2])
-    if a2 == 0: a2 = 0.000001
-    sinReal = sqrt(1.0 - r47[2, 2] ** 2)
+    a2 = acos(r47[2, 2] * mult) * mult
+    sinReal = sin(a2) * mult
 
-    a1Sin = r47[1, 2] / -sinReal
     a1Cos = r47[0, 2] / -sinReal
+    a1Sin = r47[1, 2] / -sinReal
 
-    a3Cos = r47[2, 0] / sinReal
+    a3Cos = r47[2, 0] / sinReal * mult
     a3Sin = r47[2, 1] / -sinReal
 
     a1 = atan2(a1Sin, a1Cos)
@@ -208,9 +207,14 @@ while 1:
     xVec = norm(xVec)
     yVec = cross(zVec, xVec)
     yVec = norm(yVec)
-    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, xVec.y, xVec.z], [yVec.x, yVec.y, yVec.z], [zVec.x, zVec.y, zVec.z]]))
+    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, xVec.y, xVec.z], [yVec.x, yVec.y, yVec.z], [zVec.x, zVec.y, zVec.z]]), 1)
     
     calculateMatrices()
+
+    endZ = getPosFromBase(vector(0, 0, 1), 6) - getPosFromBase(vector(0, 0, 0), 6)
+    if (endZ - zVec).mag > 0.1:
+        angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, xVec.y, xVec.z], [yVec.x, yVec.y, yVec.z], [zVec.x, zVec.y, zVec.z]]), -1)
+        calculateMatrices()
 
     axp0 = getPosFromBase(vector(-3, 0, 1), 2)
     axp1 = getPosFromBase(vector(-3, 0, -1), 2)
