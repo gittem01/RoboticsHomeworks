@@ -105,14 +105,17 @@ def calculateReverseAngles(pos):
     try:
         f1 = acos((offsets[2].x ** 2 - (offsets[1].x ** 2 + pos.x ** 2 + pos.y ** 2 + (pos.z - offsets[0].z) ** 2)) / 
                 -(2 * offsets[1].x * ((pos.x ** 2 + pos.y ** 2 + (pos.z - offsets[0].z) ** 2) ** 0.5)))
+        f2 = atan2(pos.z - offsets[0].z, (pos.x ** 2 + pos.y ** 2) ** 0.5)
+        ang2 = f2 - f1
+        
+        f3 = acos((pos.x ** 2 + pos.y ** 2 + (pos.z - offsets[0].z) ** 2 - offsets[1].x ** 2 - offsets[2].x ** 2) /
+                -(2 * offsets[1].x * offsets[2].x))
+        ang3 = pi - f3
     except:
-        f1 = 0
-    f2 = atan2(pos.z - offsets[0].z, (pos.x ** 2 + pos.y ** 2) ** 0.5)
-    ang2 = f2 - f1
-    
-    f3 = acos((pos.x ** 2 + pos.y ** 2 + (pos.z - offsets[0].z) ** 2 - offsets[1].x ** 2 - offsets[2].x ** 2) /
-              -(2 * offsets[1].x * offsets[2].x))
-    ang3 = pi - f3
+        ang1 = 0
+        ang2 = 0
+        ang3 = 0
+        return ang1, ang2, ang3
 
     return ang1, ang2, ang3
 
@@ -125,13 +128,13 @@ def calculateEndAngles(requiredFrame, mult):
     r47 = np.dot(np.linalg.inv(r14), r17)
 
     r47[2, 2] = min(1.0, max(-1.0, r47[2, 2]))
-    a2 = acos(r47[2, 2] * mult) * mult
-    sinReal = sin(a2) * mult
+    a2 = acos(r47[2, 2]) * mult
+    sinReal = sin(a2)
 
     a1Cos = r47[0, 2] / -sinReal
     a1Sin = r47[1, 2] / -sinReal
 
-    a3Cos = r47[2, 0] / sinReal * mult
+    a3Cos = r47[2, 0] / sinReal
     a3Sin = r47[2, 1] / -sinReal
 
     a1 = atan2(a1Sin, a1Cos)
