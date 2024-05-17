@@ -12,6 +12,8 @@ scene.camera.up = vector(0, 0, 1)
 offsets = [vector(0, 0, 3), vector(3, 0, 0), vector(3, 0, 0)]
 axises = [vector(0, 0, 1), vector(1, 0, 0), vector(1, 0, 0)]
 
+eulerAngles = [0, 0]
+
 angle1 = 0
 angle2 = 0
 angle3 = 0
@@ -41,8 +43,8 @@ matrices = [r67, r56, r45, r34, r23, r12]
 def calculateMatrices():
     global angle1, angle2, angle3, r67, r56, r45, r34, r23, r12, matrices
 
-    r67 = np.array([[np.cos(angle6), -np.sin(angle6), 0, 0],
-                    [np.sin(angle6), np.cos(angle6), 0, 0],
+    r67 = np.array([[cos(angle6), -sin(angle6), 0, 0],
+                    [sin(angle6), cos(angle6), 0, 0],
                     [0, 0, 1, 0.25],
                     [0, 0, 0, 1]])
 
@@ -83,14 +85,9 @@ def getPosFromBase(p, n):
     return vector(p[0], p[1], p[2]) + p0
 
 def angle1Func(evt):
-    global angle1
-    angle1 = evt.value
+    eulerAngles[0] = evt.value
 def angle2Func(evt):
-    global angle2
-    angle2 = evt.value
-def angle3Func(evt):
-    global angle3
-    angle3 = evt.value
+    eulerAngles[1] = evt.value
 
 def angle4Func(evt):
     global angle4
@@ -145,7 +142,6 @@ def calculateEndAngles(requiredFrame, mult):
 
 slider1 = slider(min=-pi, max=pi, length=200, bind=angle1Func, value=0, vertical=True)
 slider2 = slider(min=-pi, max=pi, length=200, bind=angle2Func, value=0, vertical=True)
-slider3 = slider(min=-pi, max=pi, length=200, bind=angle3Func, value=0, vertical=True)
 
 slider4 = slider(min=-pi, max=pi, length=200, bind=angle4Func, value=0, vertical=True)
 slider5 = slider(min=-pi, max=pi, length=200, bind=angle5Func, value=0, vertical=True)
@@ -196,18 +192,20 @@ lineY = curve(pos=[p0, p0], radius=lineR, color=color.green)
 lineZ = curve(pos=[p0, p0], radius=lineR, color=color.blue)
 
 while 1:
-    angle1, angle2, angle3 = calculateReverseAngles(vector(cos(time.time() * 0.26) * 3, sin(time.time() * 0.5) * 3, 2 + 3.0 * sin(time.time() * 0.35)))
+    angle1, angle2, angle3 = calculateReverseAngles(vector(cos(time.time() * 0.26) * 3, sin(time.time() * 0.5) * 3 + 2, 2 + 3.0 * sin(time.time() * 0.35)))
 
     calculateMatrices()
 
     lookPos = p0
     zVec = vector(0, 1, 0)
+    zVec = rotate(zVec, eulerAngles[0], vector(1, 0, 0))
+    zVec = rotate(zVec, eulerAngles[1], vector(0, 0, 1))
     zVec = norm(zVec)
     xVec = cross(vector(0, 0, 1), zVec)
     xVec = norm(xVec)
     yVec = cross(zVec, xVec)
     yVec = norm(yVec)
-    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, xVec.y, xVec.z], [yVec.x, yVec.y, yVec.z], [zVec.x, zVec.y, zVec.z]]), 1)
+    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, yVec.x, zVec.x], [xVec.y, yVec.y, zVec.y], [xVec.z, yVec.z, zVec.z]]), 1)
     
     calculateMatrices()
 
