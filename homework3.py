@@ -128,7 +128,7 @@ def calculateEndAngles(requiredFrame, mult):
     r47 = np.dot(np.linalg.inv(r14), r17)
 
     r47[2, 2] = min(1.0, max(-1.0, r47[2, 2]))
-    a2 = acos(r47[2, 2]) * mult
+    a2 = acos(r47[2, 2])
     sinReal = sin(a2)
 
     a1Cos = r47[0, 2] / -sinReal
@@ -209,13 +209,8 @@ while 1:
     yVec = cross(zVec, xVec)
     yVec = norm(yVec)
     angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, yVec.x, zVec.x], [xVec.y, yVec.y, zVec.y], [xVec.z, yVec.z, zVec.z]]), 1)
-    
-    calculateMatrices()
 
-    endZ = getPosFromBase(vector(0, 0, 1), 6) - getPosFromBase(vector(0, 0, 0), 6)
-    if (endZ - zVec).mag > 0.1:
-        angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, xVec.y, xVec.z], [yVec.x, yVec.y, yVec.z], [zVec.x, zVec.y, zVec.z]]), -1)
-        calculateMatrices()
+    calculateMatrices()
 
     axp0 = getPosFromBase(vector(-3, 0, 1), 2)
     axp1 = getPosFromBase(vector(-3, 0, -1), 2)
