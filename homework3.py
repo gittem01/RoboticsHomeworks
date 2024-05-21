@@ -119,7 +119,7 @@ def calculateReverseAngles(pos):
 
     return ang1, ang2, ang3
 
-def calculateEndAngles(requiredFrame, mult):
+def calculateEndAngles(requiredFrame):
     r17 = requiredFrame
     r14 = matrices[5][:3, :3]
     for i in range(4, 2, -1):
@@ -208,7 +208,7 @@ while 1:
     xVec = norm(xVec)
     yVec = cross(zVec, xVec)
     yVec = norm(yVec)
-    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, yVec.x, zVec.x], [xVec.y, yVec.y, zVec.y], [xVec.z, yVec.z, zVec.z]]), 1)
+    angle4, angle5, angle6 = calculateEndAngles(np.array([[xVec.x, yVec.x, zVec.x], [xVec.y, yVec.y, zVec.y], [xVec.z, yVec.z, zVec.z]]))
 
     calculateMatrices()
 
