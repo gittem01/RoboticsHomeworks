@@ -2,9 +2,12 @@ import numpy as np
 from vpython import *
 import time
 from fontUtil import *
+from threading import Lock
 
-scene.width = 1366
-scene.height = 600
+mutex = Lock()
+
+scene.width = 1425
+scene.height = 700
 
 scene.camera.pos = vector(0, -5, 0)
 scene.camera.axis = vector(0, 5, 0)
@@ -14,6 +17,14 @@ offsets = [vector(0, 0, 3), vector(3, 0, 0), vector(3, 0, 0)]
 axises = [vector(0, 0, 1), vector(1, 0, 0), vector(1, 0, 0)]
 
 eulerAngles = [0, 0]
+
+textStart = vector(-5.5, -2, 5)
+text = "."
+charInd = 0
+partInd = 0
+ind = 0
+finish = False
+advance_width, left_side_bearing = getPoints(text[charInd])
 
 angle1 = 1
 angle2 = 1
@@ -98,15 +109,6 @@ def angle1Func(evt):
 def angle2Func(evt):
     eulerAngles[1] = evt.value
 
-def angle4Func(evt):
-    global angle4
-    angle4 = evt.value
-def angle5Func(evt):
-    global angle5
-    angle5 = evt.value
-def angle6Func(evt):
-    global angle6
-    angle6 = evt.value
 
 def calculateReverseAngles(pos):
     ang1 = atan2(pos.y, pos.x)
@@ -160,12 +162,8 @@ def calculateJacobian():
     
     return jacobian
 
-slider1 = slider(min=-pi, max=pi, length=200, bind=angle1Func, value=0, vertical=True)
-slider2 = slider(min=-pi, max=pi, length=200, bind=angle2Func, value=0, vertical=True)
-
-slider4 = slider(min=-pi, max=pi, length=200, bind=angle4Func, value=0, vertical=True)
-slider5 = slider(min=-pi, max=pi, length=200, bind=angle5Func, value=0, vertical=True)
-slider6 = slider(min=-pi, max=pi, length=200, bind=angle6Func, value=0, vertical=True)
+slider1 = slider(min=-pi, max=pi, length=400, bind=angle1Func, value=0)
+slider2 = slider(min=-pi, max=pi, length=400, bind=angle2Func, value=0)
 
 # draw cylinder
 c1 = cylinder(pos=p0, axis=vector(0, 0, 1), radius=0.3, color=color.white)
@@ -175,7 +173,24 @@ c4 = cylinder(pos=p0, axis=vector(0, 1, 0), radius=0.15, color=color.red)
 c5 = cylinder(pos=p0, axis=vector(0, 1, 0), radius=0.15, color=color.red)
 c6 = cylinder(pos=p0, axis=vector(0, 1, 0), radius=0.15, color=color.red)
 
-trailSphere = sphere(pos=p0, radius=0.1, color=color.yellow, make_trail=True, interval=10, retain=100000)
+trailSphere = sphere(pos=p0, radius=0.0, color=color.yellow, make_trail=False,
+                     interval=10, retain=99999999999999, trail_radius=0.01, trail_color=color.white)
+
+def winInputFunc(evt):
+    global text, textStart, trailSphere, charInd, partInd, ind, finish, advance_width, left_side_bearing
+    mutex.acquire()
+    text = evt.text
+    advance_width, left_side_bearing = getPoints(text[0])
+    textStart = vector(-5.5, -2, 5)
+    charInd = 0
+    partInd = 0
+    ind = 0
+    finish = False
+    trailSphere.clear_trail()
+    trailSphere.make_trail = False
+    mutex.release()
+    
+winInput = winput(bind=winInputFunc, type="string", width=400)
 
 line1 = curve(pos=[p0, p1], radius=lineR)
 
@@ -218,26 +233,60 @@ calculateMatrices()
 deltatime = 0
 currentTime = time.time()
 lastTime = time.time()
-ind = 0
+fontMult = 0.001
+robotSpeed = 2
 
 while 1:
     currentTime = time.time()
     deltatime = currentTime - lastTime
     lastTime = currentTime
 
-    requestedPosition = np.array([cos(time.time() * 0.5) * 5 + p0.x, sin(time.time() * 0.5) * 5 + p0.y, p0.z + 2.0])
-    requestedPosition = np.array([fullPoints[0][ind][0] * 0.003 - 1, 2.0, fullPoints[0][ind][1] * 0.003 - 1])
+    mutex.acquire()
+    requestedPosition = np.array([fullPoints[partInd][ind][0] * fontMult + p0.x + textStart.x,
+                                  p0.y + textStart.y,
+                                  fullPoints[partInd][ind][1] * fontMult + p0.z + textStart.z])
 
-    currentPositon = getPosFromBase(vector(0, 0, 0), 3)
+    currentPositon = getPosFromBase(vector(0, 0, 0), 6)
     posdiff = (requestedPosition - np.array([currentPositon.x, currentPositon.y, currentPositon.z]))
 
-    if posdiff[0] ** 2 + posdiff[1] ** 2 + posdiff[2] ** 2 < 0.01:
-        ind = (ind + 1) % len(fullPoints[0])
+    posdiffLen = (posdiff[0] ** 2 + posdiff[1] ** 2 + posdiff[2] ** 2) ** 0.5
+    if posdiffLen < 0.005:
+        trailSphere.make_trail = True
+        ind = ind + 1
+        if ind == len(fullPoints[partInd]):
+            finish = True
+            ind = 0
+        if finish and ind == 2:
+            finish = False
+            partInd += 1
+            if partInd == len(fullPoints):
+                partInd = 0
+                charInd += 1
+                if charInd == len(text):
+                    charInd = 0
+                    text = "."
+                    textStart = vector(0, 0, 0)
+                textStart.x += advance_width * fontMult
+                advance_width, left_side_bearing = getPoints(text[charInd])
+                textStart.x += left_side_bearing * fontMult
+                if text[charInd] == " ":
+                    leadingSpaces = numLeadingSpaces(text, charInd)
+                    textStart.x += advance_width * fontMult * leadingSpaces
+                    charInd += leadingSpaces
+                    advance_width, left_side_bearing = getPoints(text[charInd])
+                    textStart.x += left_side_bearing * fontMult
+
+            ind = 0
+            trailSphere.make_trail = False
+
+    mutex.release()
 
     jacobian = calculateJacobian()
     jacobianInv = np.linalg.inv(jacobian)
 
-    angles = np.dot(jacobianInv, posdiff) * deltatime
+    robotSpeed = max(2, posdiffLen * 3)
+    posdiff = robotSpeed * posdiff / posdiffLen
+    angles = np.dot(jacobianInv, posdiff) * 0.001
 
     angle1 += angles[0]
     angle2 += angles[1]
@@ -246,7 +295,7 @@ while 1:
     calculateMatrices()
 
     lookPos = p0
-    zVec = vector(0, 1, 0)
+    zVec = vector(0, -1, 0)
     zVec = rotate(zVec, eulerAngles[0], vector(1, 0, 0))
     zVec = rotate(zVec, eulerAngles[1], vector(0, 0, 1))
     zVec = norm(zVec)
@@ -258,7 +307,7 @@ while 1:
 
     calculateMatrices()
 
-    trailSphere.pos = getPosFromBase(vector(0, 0, 0), 3)
+    trailSphere.pos = getPosFromBase(vector(0, 0, 0), 6)
 
     axp0 = getPosFromBase(vector(-3, 0, 1), 2)
     axp1 = getPosFromBase(vector(-3, 0, -1), 2)

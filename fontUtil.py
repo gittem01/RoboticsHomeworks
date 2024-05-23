@@ -1,8 +1,15 @@
 from fontTools.ttLib import TTFont
 from fontTools.pens.basePen import BasePen
-import matplotlib.pyplot as plt
 
 fullPoints = []
+fonts = ["NotoSansMono-Bold.ttf", "NotoSansSC-Bold.ttf"]
+font_path = fonts[0]
+
+fontList = [TTFont(font_path), TTFont(fonts[1])]
+fontInd = 0
+
+font = fontList[fontInd]
+sample_rate = 10
 
 class SamplePen(BasePen):
     def __init__(self, glyphSet, sample_rate=10):
@@ -59,31 +66,27 @@ def get_glyph_points(glyph_name, sample_rate=10):
 def get_glyph_metrics(glyph_name):
     return font['hmtx'][glyph_name]
 
-font_path = 'Roboto-Bold.ttf'
-font = TTFont(font_path)
-sample_rate = 5
+def getPoints(character):
+    global font, fullPoints, fontInd, fontList
 
-glyph_name = "Ğ"
-glyph_name = get_glyph_name_for_character(font, glyph_name)
-get_glyph_points(glyph_name, sample_rate)
+    try:
+        glyph_name = get_glyph_name_for_character(font, character)
+        fullPoints.clear()    
+        get_glyph_points(glyph_name, sample_rate)
+    except:
+        fontInd = fontInd ^ 1
+        font = fontList[fontInd]
+        glyph_name = get_glyph_name_for_character(font, character)
+        fullPoints.clear()    
+        get_glyph_points(glyph_name, sample_rate)
 
-advance_width, left_side_bearing = get_glyph_metrics(glyph_name)
-print(f"Glyph: {glyph_name}, Advance Width: {advance_width}, Left Side Bearing: {left_side_bearing}")
+    return get_glyph_metrics(glyph_name)
 
-# glyph_name = "C"
-# glyph_name = get_glyph_name_for_character(font, glyph_name)
-# glyph_points.extend(get_glyph_points(glyph_name, sample_rate))
-
-# advance_width, left_side_bearing = get_glyph_metrics(glyph_name)
-# print(f"Glyph: {glyph_name}, Advance Width: {advance_width}, Left Side Bearing: {left_side_bearing}")
-
-colors = ["red", "green", "blue", "yellow", "purple", "orange", "pink", "brown", "black", "gray"]
-
-# i = 0
-# for points in fullPoints:
-#     for point in points:
-#         plt.plot(point[0], point[1], ".", color=colors[i])
-    
-#     i += 1
-
-# plt.show()
+def numLeadingSpaces(string, startInd):
+    count = 0
+    for i in range(startInd, len(string)):
+        if string[i] == " ":
+            count += 1
+        else:
+            break
+    return count
