@@ -2,8 +2,8 @@ import numpy as np
 from vpython import *
 import time
 
-scene.width = 1366
-scene.height = 600
+scene.width = 1425
+scene.height = 700
 
 scene.camera.pos = vector(0, -5, 0)
 scene.camera.axis = vector(0, 5, 0)
@@ -89,16 +89,6 @@ def angle1Func(evt):
 def angle2Func(evt):
     eulerAngles[1] = evt.value
 
-def angle4Func(evt):
-    global angle4
-    angle4 = evt.value
-def angle5Func(evt):
-    global angle5
-    angle5 = evt.value
-def angle6Func(evt):
-    global angle6
-    angle6 = evt.value
-
 def calculateReverseAngles(pos):
     ang1 = atan2(pos.y, pos.x)
 
@@ -143,12 +133,8 @@ def calculateEndAngles(requiredFrame):
     return a1, a2, a3
 
 
-slider1 = slider(min=-pi, max=pi, length=200, bind=angle1Func, value=0, vertical=True)
-slider2 = slider(min=-pi, max=pi, length=200, bind=angle2Func, value=0, vertical=True)
-
-slider4 = slider(min=-pi, max=pi, length=200, bind=angle4Func, value=0, vertical=True)
-slider5 = slider(min=-pi, max=pi, length=200, bind=angle5Func, value=0, vertical=True)
-slider6 = slider(min=-pi, max=pi, length=200, bind=angle6Func, value=0, vertical=True)
+slider1 = slider(min=-pi, max=pi, length=400, bind=angle1Func, value=0)
+slider2 = slider(min=-pi, max=pi, length=400, bind=angle2Func, value=0)
 
 # draw cylinder
 c1 = cylinder(pos=p0, axis=vector(0, 0, 1), radius=0.3, color=color.white)
