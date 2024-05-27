@@ -9,7 +9,7 @@ mutex = Lock()
 scene.width = 1425
 scene.height = 700
 
-scene.camera.pos = vector(0, -5, 0)
+scene.camera.pos = vector(-3, -5, 0.5)
 scene.camera.axis = vector(0, 5, 0)
 scene.camera.up = vector(0, 0, 1)
 
@@ -19,7 +19,7 @@ axises = [vector(0, 0, 1), vector(1, 0, 0), vector(1, 0, 0)]
 eulerAngles = [0, 0]
 
 textStart = vector(-5.5, -2, 5)
-text = "."
+text = ">"
 charInd = 0
 partInd = 0
 ind = 0
@@ -246,7 +246,7 @@ while 1:
                                   p0.y + textStart.y,
                                   fullPoints[partInd][ind][1] * fontMult + p0.z + textStart.z])
 
-    currentPositon = getPosFromBase(vector(0, 0, 0), 6)
+    currentPositon = getPosFromBase(vector(0, 0, 0.25), 6)
     posdiff = (requestedPosition - np.array([currentPositon.x, currentPositon.y, currentPositon.z]))
 
     posdiffLen = (posdiff[0] ** 2 + posdiff[1] ** 2 + posdiff[2] ** 2) ** 0.5
@@ -284,7 +284,7 @@ while 1:
     jacobian = calculateJacobian()
     jacobianInv = np.linalg.inv(jacobian)
 
-    robotSpeed = max(2, posdiffLen * 3)
+    robotSpeed = max(2, posdiffLen * 2)
     posdiff = robotSpeed * posdiff / posdiffLen
     angles = np.dot(jacobianInv, posdiff) * 0.001
 
@@ -307,7 +307,7 @@ while 1:
 
     calculateMatrices()
 
-    trailSphere.pos = getPosFromBase(vector(0, 0, 0), 6)
+    trailSphere.pos = getPosFromBase(vector(0, 0, 0.25), 6)
 
     axp0 = getPosFromBase(vector(-3, 0, 1), 2)
     axp1 = getPosFromBase(vector(-3, 0, -1), 2)
