@@ -1,8 +1,7 @@
 import numpy as np
 from vpython import *
-import time
 
-scene.width = 1366
+scene.width = 1425
 scene.height = 600
 
 scene.camera.pos = vector(0, -5, 0)
@@ -28,6 +27,7 @@ lineR = 0.03
 p0 = vector(-2, 2, -3)
 p1 = p0 + offsets[0]
 p2 = p1 + offsets[1]
+requestedPosition = vector(0, 0, 0)
 
 diff = vector(0, -0.5, 0)
 
@@ -89,15 +89,12 @@ def angle1Func(evt):
 def angle2Func(evt):
     eulerAngles[1] = evt.value
 
-def angle4Func(evt):
-    global angle4
-    angle4 = evt.value
-def angle5Func(evt):
-    global angle5
-    angle5 = evt.value
-def angle6Func(evt):
-    global angle6
-    angle6 = evt.value
+def posFunc1(evt):
+    requestedPosition.x = evt.value
+def posFunc2(evt):
+    requestedPosition.y = evt.value
+def posFunc3(evt):
+    requestedPosition.z = evt.value
 
 def calculateReverseAngles(pos):
     ang1 = atan2(pos.y, pos.x)
@@ -112,9 +109,9 @@ def calculateReverseAngles(pos):
                 -(2 * offsets[1].x * offsets[2].x))
         ang3 = pi - f3
     except:
-        ang1 = 0
-        ang2 = 0
-        ang3 = 0
+        ang1 = 100
+        ang2 = 100
+        ang3 = 100
         return ang1, ang2, ang3
 
     return ang1, ang2, ang3
@@ -146,9 +143,9 @@ def calculateEndAngles(requiredFrame):
 slider1 = slider(min=-pi, max=pi, length=200, bind=angle1Func, value=0, vertical=True)
 slider2 = slider(min=-pi, max=pi, length=200, bind=angle2Func, value=0, vertical=True)
 
-slider4 = slider(min=-pi, max=pi, length=200, bind=angle4Func, value=0, vertical=True)
-slider5 = slider(min=-pi, max=pi, length=200, bind=angle5Func, value=0, vertical=True)
-slider6 = slider(min=-pi, max=pi, length=200, bind=angle6Func, value=0, vertical=True)
+slider3 = slider(min=-3, max=3, length=200, bind=posFunc1, value=0, vertical=True)
+slider4 = slider(min=-3, max=3, length=200, bind=posFunc2, value=0, vertical=True)
+slider5 = slider(min=-3, max=3, length=200, bind=posFunc3, value=0, vertical=True)
 
 # draw cylinder
 c1 = cylinder(pos=p0, axis=vector(0, 0, 1), radius=0.3, color=color.white)
@@ -195,8 +192,11 @@ lineY = curve(pos=[p0, p0], radius=lineR, color=color.green)
 lineZ = curve(pos=[p0, p0], radius=lineR, color=color.blue)
 
 while 1:
-    angle1, angle2, angle3 = calculateReverseAngles(vector(cos(time.time() * 0.26) * 3, sin(time.time() * 0.5) * 3 + 2, 2 + 3.0 * sin(time.time() * 0.35)))
-
+    #angle1, angle2, angle3 = calculateReverseAngles(vector(cos(time.time() * 0.26) * 2, sin(time.time() * 0.5) * 2 + 2, 2 + sin(time.time() * 0.35) * 2.0))
+    angle1, angle2, angle3 = calculateReverseAngles(requestedPosition - p0 - vector(+2, -2, +2))
+    if (angle1 > 50):
+        angle1, angle2, angle3 = 0, 0, 0
+    print(requestedPosition + p0, getPosFromBase(vector(0, 0, 0), 0))
     calculateMatrices()
 
     lookPos = p0
