@@ -5,6 +5,7 @@ MPU6050 sensor;
 
 int accx, accy, accz, gyrox, gyroy, gyroz;
 uint8_t fifoBuffer[64];
+VectorFloat gVec;
 Quaternion q;
 
 void setup()
